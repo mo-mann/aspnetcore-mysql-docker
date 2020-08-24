@@ -2,34 +2,48 @@ version: '3'
 
 services:
     db:
+        container_name: mysql_db_1
         image: mysql
+        command: mysqld --default-authentication-plugin=mysql_native_password
         ports: 
-            - "3306:3306"
+            - "3310:3306"
         environment:
           MYSQL_ROOT_PASSWORD: bindu123
         volumes:
         #Note that this is for Windows.
-            - //C/Work/Dockershared/mysql:/var/lib/mysql   
+            - C:/Work/Dockershared/mysql:/var/lib/mysql
+            - ./DatabaseSetup/mysql:/docker-entrypoint-initdb.d
         networks:
             - default
+        restart: always
    
     corewebappsimple:
+        container_name: corewebapp
         image: corewebappsimple
         build:
           context: .
           dockerfile: CoreWebAppSimple/Dockerfile
-        links:
-          - db:db
+        # links:
+        #   - db:db
+        depends_on:
+            - db
         ports:
-          - 8001:80
+            - 8001:80
         restart: always
 
+    # To login to the PHP Admin. See details below.
+    # http://localhost:8000
+    # PHPMyAdmin - Username : root
+    #              Password : bindu123
     phpmyadmin:
-          image: phpmyadmin/phpmyadmin
-          links: 
-              - db:db
-          ports:
-              - 8000:80
-          environment:
-              MYSQL_ROOT_PASSWORD: bindu123
+        container_name: phpadmin
+        image: phpmyadmin/phpmyadmin
+        # links: 
+        #     - db:db
+        depends_on:
+            - db
+        ports:
+            - 8000:80
+        environment:
+            MYSQL_ROOT_PASSWORD: bindu123
       
